@@ -1,0 +1,6 @@
+{
+  "name": "TheMainKeys Platform",
+  "description": "Premium venture builder and brand development platform, featuring portfolio CMS, digital development, modeling, and elite fashion brands.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
