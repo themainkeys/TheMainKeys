@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Product, Order, PromoCode, OrderItem, ProductReview } from '../types';
+import { Product, Order, PromoCode, ProductReview } from '../types';
 import { 
   ShoppingBag, Heart, Star, Sparkles, Filter, ChevronRight, X, 
   Trash2, Plus, Minus, Tag, Check, ArrowLeft, CreditCard, Ship, 
@@ -71,12 +71,10 @@ export default function BoutiquePage({
     country: 'United States',
   });
 
-  const [paymentForm, setPaymentForm] = useState({
-    cardName: '',
-    cardNumber: '',
-    cardExpiry: '',
-    cardCvc: '',
-  });
+  // NOTE: paymentForm state removed — PCI compliance fix.
+  // Real card collection will use Stripe Elements in Phase 2 so that
+  // raw card data never enters JavaScript application state.
+  // See: https://stripe.com/docs/stripe-js
 
   const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
 
@@ -267,77 +265,9 @@ export default function BoutiquePage({
     }
   };
 
-  const handlePlaceOrder = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (cart.length === 0) return;
-
-    // Build unique Order Object
-    const orderId = 'TMK-' + Math.floor(100000 + Math.random() * 900000);
-    const orderItems: OrderItem[] = cart.map(item => ({
-      productId: item.product.id,
-      productName: item.product.name,
-      brandName: item.product.brandName,
-      price: item.product.salePrice || item.product.price,
-      quantity: item.quantity,
-      size: item.selectedSize,
-      color: item.selectedColor,
-    }));
-
-    const newOrder: Order = {
-      id: orderId,
-      customerName: `${shippingForm.firstName} ${shippingForm.lastName}`,
-      customerEmail: shippingForm.email,
-      items: orderItems,
-      total: getTotal(),
-      status: 'Completed',
-      date: new Date().toISOString().slice(0, 10),
-      promoCodeUsed: appliedPromo?.code,
-      shippingAddress: `${shippingForm.address}, ${shippingForm.city}, ${shippingForm.postalCode}, ${shippingForm.country}`,
-      billingAddress: `${shippingForm.address}, ${shippingForm.city}, ${shippingForm.postalCode}, ${shippingForm.country}`,
-      trackingNumber: 'TRK-' + Math.floor(2000000 + Math.random() * 8000000),
-      customerDetails: {
-        firstName: shippingForm.firstName,
-        lastName: shippingForm.lastName,
-        email: shippingForm.email,
-        addressLine1: shippingForm.address,
-        addressLine2: '',
-        city: shippingForm.city,
-        state: shippingForm.country || 'N/A',
-        postalCode: shippingForm.postalCode,
-        shippingMethod: shippingMethod as any,
-      },
-      subTotal: getSubtotal(),
-      discountAmount: getDiscount(),
-      taxAmount: getTax(),
-      shippingCost: getShippingFee(),
-      grandTotal: getTotal(),
-      createdAt: new Date().toISOString(),
-    };
-
-    // Decrement inventories
-    const updatedProducts = products.map(p => {
-      const cartItem = cart.find(item => item.product.id === p.id);
-      if (cartItem) {
-        const nextInventory = Math.max(0, p.inventory - cartItem.quantity);
-        return {
-          ...p,
-          inventory: nextInventory,
-          soldOut: nextInventory === 0 ? true : p.soldOut,
-        };
-      }
-      return p;
-    });
-
-    setProducts(updatedProducts);
-    setOrders([newOrder, ...orders]);
-    setPlacedOrderId(orderId);
-    setCheckoutStep(3); // Completed step
-    setCart([]); // Clear cart
-
-    if (window.showLuxuryToast) {
-      window.showLuxuryToast(`Order ${orderId} successfully authenticated with Stripe.`);
-    }
-  };
+  // NOTE: handlePlaceOrder removed — PCI compliance fix.
+  // Order creation requires Stripe payment confirmation (Phase 2).
+  // The checkout flow now shows a "coming soon" placeholder at step 2.
 
   return (
     <div id="boutique-page-root" className="pt-28 pb-24 bg-black min-h-screen text-neutral-300">
@@ -1112,7 +1042,7 @@ export default function BoutiquePage({
                     <div className="flex items-center gap-3 border-b border-neutral-900/60 pb-4">
                       <span className={`font-mono text-[10px] uppercase tracking-wider ${checkoutStep === 1 ? 'text-gold-400 font-bold' : 'text-neutral-500'}`}>1. Shipping details</span>
                       <ChevronRight className="w-3.5 h-3.5 text-neutral-700" />
-                      <span className={`font-mono text-[10px] uppercase tracking-wider ${checkoutStep === 2 ? 'text-gold-400 font-bold' : 'text-neutral-500'}`}>2. Premium payment</span>
+                      <span className={`font-mono text-[10px] uppercase tracking-wider ${checkoutStep === 2 ? 'text-gold-400 font-bold' : 'text-neutral-500'}`}>2. Review &amp; Confirm</span>
                     </div>
 
                     {/* Step 1 Form */}
@@ -1245,99 +1175,75 @@ export default function BoutiquePage({
                       </form>
                     )}
 
-                    {/* Step 2 Form (Stripe Card Details Sandbox) */}
+                    {/* Step 2 — Secure Checkout Coming Soon (PCI-safe placeholder) */}
                     {checkoutStep === 2 && (
-                      <form onSubmit={handlePlaceOrder} className="space-y-4">
+                      <div className="space-y-6">
                         <h3 className="font-sans font-bold text-sm text-white uppercase tracking-wider flex items-center gap-1.5">
-                          <CreditCard className="w-4.5 h-4.5 text-gold-400" /> Stripe Card Authentication
+                          <CreditCard className="w-4 h-4 text-gold-400" />
+                          Secure Payment
                         </h3>
 
-                        {/* Wallet quick pay simulation */}
-                        <div className="grid grid-cols-2 gap-3 pb-3 border-b border-neutral-900/50">
-                          <button
-                            type="button"
-                            onClick={() => window.showLuxuryToast ? window.showLuxuryToast('Apple Pay preset validated.') : null}
-                            className="p-3 bg-white hover:bg-neutral-100 text-black rounded font-sans font-bold text-xs flex items-center justify-center gap-1 cursor-pointer transition-colors"
-                          >
-                            Apple Pay
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => window.showLuxuryToast ? window.showLuxuryToast('Google Pay preset validated.') : null}
-                            className="p-3 bg-[#1e1e1e] hover:bg-neutral-900 border border-neutral-800 text-white rounded font-sans font-bold text-xs flex items-center justify-center gap-1 cursor-pointer transition-colors"
-                          >
-                            Google Pay
-                          </button>
-                        </div>
-
-                        <div className="space-y-1">
-                          <label className="font-mono text-[8px] text-neutral-500 uppercase">Cardholder Name</label>
-                          <input
-                            type="text"
-                            required
-                            placeholder="Anderson Djeemo"
-                            value={paymentForm.cardName}
-                            onChange={(e) => setPaymentForm({ ...paymentForm, cardName: e.target.value })}
-                            className="w-full bg-neutral-950 border border-neutral-900 focus:border-gold-500 text-xs p-3 text-white rounded outline-none placeholder:text-neutral-700"
-                          />
-                        </div>
-
-                        <div className="space-y-1">
-                          <label className="font-mono text-[8px] text-neutral-500 uppercase">Card Number</label>
-                          <input
-                            type="text"
-                            required
-                            placeholder="4000 1234 5678 9010"
-                            maxLength={19}
-                            value={paymentForm.cardNumber}
-                            onChange={(e) => setPaymentForm({ ...paymentForm, cardNumber: e.target.value })}
-                            className="w-full bg-neutral-950 border border-neutral-900 focus:border-gold-500 text-xs p-3 text-white rounded outline-none placeholder:text-neutral-700"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-1">
-                            <label className="font-mono text-[8px] text-neutral-500 uppercase">Expiry Date</label>
-                            <input
-                              type="text"
-                              required
-                              placeholder="MM/YY"
-                              maxLength={5}
-                              value={paymentForm.cardExpiry}
-                              onChange={(e) => setPaymentForm({ ...paymentForm, cardExpiry: e.target.value })}
-                              className="w-full bg-neutral-950 border border-neutral-900 focus:border-gold-500 text-xs p-3 text-white rounded outline-none placeholder:text-neutral-700"
-                            />
+                        {/* Coming Soon Card */}
+                        <div className="border border-gold-500/20 bg-gold-950/10 rounded-lg p-8 text-center space-y-5">
+                          <div className="w-14 h-14 rounded-full border border-gold-500/30 bg-gold-500/5 flex items-center justify-center mx-auto">
+                            <CreditCard className="w-6 h-6 text-gold-400" />
                           </div>
-                          <div className="space-y-1">
-                            <label className="font-mono text-[8px] text-neutral-500 uppercase">CVC Code</label>
-                            <input
-                              type="password"
-                              required
-                              placeholder="•••"
-                              maxLength={4}
-                              value={paymentForm.cardCvc}
-                              onChange={(e) => setPaymentForm({ ...paymentForm, cardCvc: e.target.value })}
-                              className="w-full bg-neutral-950 border border-neutral-900 focus:border-gold-500 text-xs p-3 text-white rounded outline-none placeholder:text-neutral-700"
-                            />
+
+                          <div className="space-y-2">
+                            <span className="font-mono text-[9px] tracking-[0.4em] text-gold-400 uppercase block">
+                              Stripe Integration — Phase 2
+                            </span>
+                            <h4 className="font-sans font-bold text-base text-white uppercase tracking-wide">
+                              Secure Checkout Coming Soon
+                            </h4>
+                            <p className="text-neutral-400 text-xs max-w-xs mx-auto leading-relaxed font-light">
+                              We are integrating Stripe Elements for fully PCI-compliant, server-side
+                              payment processing. Your shipping details have been saved.
+                            </p>
                           </div>
+
+                          {/* Order summary preview */}
+                          <div className="text-left bg-[#070707] border border-neutral-900 rounded p-4 space-y-2">
+                            <span className="font-mono text-[9px] text-neutral-500 uppercase tracking-wider block">Order Summary</span>
+                            <div className="flex justify-between text-xs font-mono">
+                              <span className="text-neutral-400">Subtotal</span>
+                              <span className="text-white">${getSubtotal().toLocaleString()} USD</span>
+                            </div>
+                            {appliedPromo && (
+                              <div className="flex justify-between text-xs font-mono">
+                                <span className="text-green-400">Promo ({appliedPromo.code})</span>
+                                <span className="text-green-400">-${getDiscount().toFixed(2)}</span>
+                              </div>
+                            )}
+                            <div className="flex justify-between text-xs font-mono">
+                              <span className="text-neutral-400">Shipping ({shippingMethod})</span>
+                              <span className="text-white">${getShippingFee()} USD</span>
+                            </div>
+                            <div className="flex justify-between text-xs font-mono border-t border-neutral-900 pt-2 mt-2">
+                              <span className="text-white font-bold">Total</span>
+                              <span className="text-gold-400 font-bold">${getTotal().toFixed(2)} USD</span>
+                            </div>
+                          </div>
+
+                          {/* Notify me CTA */}
+                          <button
+                            onClick={() => {
+                              if (window.showLuxuryToast) window.showLuxuryToast('You will be notified when Stripe checkout goes live.');
+                            }}
+                            className="w-full py-3 bg-gradient-to-r from-[#f27d26] to-[#b3913b] text-black font-mono text-[10px] tracking-widest uppercase font-bold rounded cursor-pointer hover:opacity-90 transition-opacity"
+                          >
+                            Notify Me When Payment is Live
+                          </button>
                         </div>
 
-                        <div className="pt-4 flex gap-3">
-                          <button
-                            type="button"
-                            onClick={() => setCheckoutStep(1)}
-                            className="px-5 py-3 border border-neutral-800 text-neutral-400 hover:text-white rounded font-mono text-[10px] tracking-widest uppercase cursor-pointer"
-                          >
-                            Back
-                          </button>
-                          <button
-                            type="submit"
-                            className="flex-1 py-3 bg-gold-500 hover:bg-gold-600 text-black text-xs font-bold tracking-widest uppercase rounded cursor-pointer transition-colors"
-                          >
-                            AUTHORIZE TRANSACTION (${getTotal().toLocaleString()} USD)
-                          </button>
-                        </div>
-                      </form>
+                        {/* Back button */}
+                        <button
+                          onClick={() => setCheckoutStep(1)}
+                          className="px-5 py-2.5 border border-neutral-800 text-neutral-400 hover:text-white rounded font-mono text-[10px] tracking-widest uppercase cursor-pointer transition-colors"
+                        >
+                          ← Back to Shipping
+                        </button>
+                      </div>
                     )}
 
                   </div>

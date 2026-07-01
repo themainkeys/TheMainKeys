@@ -5,24 +5,14 @@
 
 import { Mail, Phone, MapPin, Instagram, Linkedin, Twitter } from 'lucide-react';
 import { useLanguage } from './LanguageContext';
+import { useNavigate } from 'react-router-dom';
 
-interface FooterProps {
-  setView: (view: string) => void;
-  setSelectedBrandId: (id: string | null) => void;
-  setSelectedFounderId: (id: string | null) => void;
-}
-
-export default function Footer({
-  setView,
-  setSelectedBrandId,
-  setSelectedFounderId,
-}: FooterProps) {
+export default function Footer() {
   const { language, setLanguage, t } = useLanguage();
+  const navigate = useNavigate();
 
-  const handleNavClick = (view: string) => {
-    setView(view);
-    setSelectedBrandId(null);
-    setSelectedFounderId(null);
+  const handleNavClick = (path: string) => {
+    navigate(path);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -61,22 +51,22 @@ export default function Footer({
             </h4>
             <ul className="space-y-3">
               <li>
-                <button onClick={() => handleNavClick('home')} className="text-neutral-400 hover:text-white text-xs tracking-wider cursor-pointer uppercase">
+                <button onClick={() => handleNavClick('/')} className="text-neutral-400 hover:text-white text-xs tracking-wider cursor-pointer uppercase">
                   {t('nav.home')}
                 </button>
               </li>
               <li>
-                <button onClick={() => handleNavClick('brands')} className="text-neutral-400 hover:text-white text-xs tracking-wider cursor-pointer uppercase">
+                <button onClick={() => handleNavClick('/brands')} className="text-neutral-400 hover:text-white text-xs tracking-wider cursor-pointer uppercase">
                   {t('nav.brands')}
                 </button>
               </li>
               <li>
-                <button onClick={() => handleNavClick('fashion')} className="text-neutral-400 hover:text-white text-xs tracking-wider cursor-pointer uppercase">
+                <button onClick={() => handleNavClick('/fashion')} className="text-neutral-400 hover:text-white text-xs tracking-wider cursor-pointer uppercase">
                   {t('nav.fashion')}
                 </button>
               </li>
               <li>
-                <button onClick={() => handleNavClick('modeling')} className="text-neutral-400 hover:text-white text-xs tracking-wider cursor-pointer uppercase">
+                <button onClick={() => handleNavClick('/modeling')} className="text-neutral-400 hover:text-white text-xs tracking-wider cursor-pointer uppercase">
                   {t('nav.modeling')}
                 </button>
               </li>
@@ -90,22 +80,22 @@ export default function Footer({
             </h4>
             <ul className="space-y-3">
               <li>
-                <button onClick={() => handleNavClick('founders')} className="text-neutral-400 hover:text-white text-xs tracking-wider cursor-pointer uppercase">
+                <button onClick={() => handleNavClick('/founders')} className="text-neutral-400 hover:text-white text-xs tracking-wider cursor-pointer uppercase">
                   {t('nav.founders')}
                 </button>
               </li>
               <li>
-                <button onClick={() => handleNavClick('projects')} className="text-neutral-400 hover:text-white text-xs tracking-wider cursor-pointer uppercase">
+                <button onClick={() => handleNavClick('/projects')} className="text-neutral-400 hover:text-white text-xs tracking-wider cursor-pointer uppercase">
                   {t('nav.projects')}
                 </button>
               </li>
               <li>
-                <button onClick={() => handleNavClick('media')} className="text-neutral-400 hover:text-white text-xs tracking-wider cursor-pointer uppercase">
+                <button onClick={() => handleNavClick('/media')} className="text-neutral-400 hover:text-white text-xs tracking-wider cursor-pointer uppercase">
                   {t('nav.media')}
                 </button>
               </li>
               <li>
-                <button onClick={() => handleNavClick('contact')} className="text-neutral-400 hover:text-white text-xs tracking-wider cursor-pointer uppercase">
+                <button onClick={() => handleNavClick('/contact')} className="text-neutral-400 hover:text-white text-xs tracking-wider cursor-pointer uppercase">
                   {t('nav.contact')}
                 </button>
               </li>
